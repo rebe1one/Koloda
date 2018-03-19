@@ -50,6 +50,8 @@ public protocol KolodaViewDelegate: class {
     func kolodaDidRunOutOfCards(_ koloda: KolodaView)
     func koloda(_ koloda: KolodaView, didSelectCardAt index: Int)
     func kolodaShouldApplyAppearAnimation(_ koloda: KolodaView) -> Bool
+    func kolodaDidBeginAppearAnimation(_ koloda: KolodaView)
+    func kolodaDidEndAppearAnimation(_ koloda: KolodaView)
     func kolodaShouldMoveBackgroundCard(_ koloda: KolodaView) -> Bool
     func kolodaShouldTransparentizeNextCard(_ koloda: KolodaView) -> Bool
     func koloda(_ koloda: KolodaView, draggedCardWithPercentage finishPercentage: CGFloat, in direction: SwipeResultDirection)
@@ -68,6 +70,8 @@ public extension KolodaViewDelegate {
     func kolodaDidRunOutOfCards(_ koloda: KolodaView) {}
     func koloda(_ koloda: KolodaView, didSelectCardAt index: Int) {}
     func kolodaShouldApplyAppearAnimation(_ koloda: KolodaView) -> Bool { return true }
+    func kolodaDidBeginAppearAnimation(_ koloda: KolodaView) {}
+    func kolodaDidEndAppearAnimation(_ koloda: KolodaView) {}
     func kolodaShouldMoveBackgroundCard(_ koloda: KolodaView) -> Bool { return true }
     func kolodaShouldTransparentizeNextCard(_ koloda: KolodaView) -> Bool { return true }
     func koloda(_ koloda: KolodaView, draggedCardWithPercentage finishPercentage: CGFloat, in direction: SwipeResultDirection) {}
@@ -263,10 +267,14 @@ open class KolodaView: UIView, DraggableCardDelegate {
         alpha = 0
         isUserInteractionEnabled = false
         animationSemaphore.increment()
+        delegate?.kolodaDidBeginAppearAnimation(self)
         animator.animateAppearance(appearanceAnimationDuration) { [weak self] _ in
             self?.isUserInteractionEnabled = true
             self?.animationSemaphore.decrement()
             self?.layoutDeck()
+            if let strongSelf = self {
+                strongSelf.delegate?.kolodaDidEndAppearAnimation(strongSelf)
+            }
         }
     }
     
